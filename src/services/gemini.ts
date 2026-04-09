@@ -1,6 +1,7 @@
 import { GoogleGenAI } from "@google/genai";
 import { Message } from "../types";
 
+// Always use process.env.GEMINI_API_KEY for the Gemini API.
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
 
 export async function getCoachResponse(messages: Message[], userContext: string) {

@@ -1,8 +1,10 @@
-import { motion } from 'motion/react';
-import { Flame, Zap, Droplets, Play, Plus, Utensils, Dumbbell } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
+import { Flame, Zap, Droplets, Play, Plus, Utensils, Dumbbell, Search, Loader2 } from 'lucide-react';
 import GlassCard from '../ui/GlassCard';
 import { UserProfile } from '../../types';
 import { cn } from '../../lib/utils';
+import { useState } from 'react';
+import { getNutritionInfo, NutritionData } from '../../services/nutrition';
 
 import Logo from '../ui/Logo';
 
@@ -12,8 +14,22 @@ interface HomeProps {
 }
 
 export default function Home({ user, setUser }: HomeProps) {
+  const [foodQuery, setFoodQuery] = useState('');
+  const [nutrition, setNutrition] = useState<NutritionData | null>(null);
+  const [isSearching, setIsSearching] = useState(false);
+
   const addWater = () => {
     setUser({ ...user, waterIntake: Math.min(user.waterIntake + 250, user.waterGoal) });
+  };
+
+  const handleNutritionSearch = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!foodQuery.trim()) return;
+
+    setIsSearching(true);
+    const data = await getNutritionInfo(foodQuery);
+    setNutrition(data);
+    setIsSearching(false);
   };
 
   return (
@@ -74,6 +90,68 @@ export default function Home({ user, setUser }: HomeProps) {
               START WORKOUT
             </button>
           </div>
+        </GlassCard>
+
+        {/* Nutrition Search */}
+        <GlassCard className="space-y-4">
+          <div className="flex items-center gap-2 text-neon-blue">
+            <Utensils size={18} />
+            <h3 className="font-bold text-sm uppercase tracking-widest">Nutrition Scanner</h3>
+          </div>
+          
+          <form onSubmit={handleNutritionSearch} className="relative">
+            <input 
+              type="text"
+              value={foodQuery}
+              onChange={(e) => setFoodQuery(e.target.value)}
+              placeholder="Search food (e.g. 1 large apple)"
+              className="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-4 pr-12 text-sm focus:outline-none focus:border-neon-blue/50 transition-all"
+            />
+            <button 
+              type="submit"
+              disabled={isSearching}
+              className="absolute right-2 top-2 bottom-2 w-8 bg-neon-blue text-black rounded-lg flex items-center justify-center disabled:opacity-50"
+            >
+              {isSearching ? <Loader2 size={16} className="animate-spin" /> : <Search size={16} />}
+            </button>
+          </form>
+
+          <AnimatePresence>
+            {nutrition && (
+              <motion.div 
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="space-y-3 pt-2 border-t border-white/5"
+              >
+                <div className="flex justify-between items-end">
+                  <div>
+                    <p className="text-[10px] text-white/40 uppercase font-bold tracking-widest">Total Energy</p>
+                    <p className="text-2xl font-black text-white">{nutrition.calories} <span className="text-xs font-normal text-white/40">kcal</span></p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-[10px] text-white/40 uppercase font-bold tracking-widest">Weight</p>
+                    <p className="text-sm font-bold">{Math.round(nutrition.totalWeight)}g</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-2">
+                  <div className="bg-white/5 p-2 rounded-lg border border-white/5 text-center">
+                    <p className="text-[8px] text-white/40 uppercase font-bold mb-1">Protein</p>
+                    <p className="text-xs font-bold text-orange-400">{Math.round(nutrition.totalNutrients.PROCNT?.quantity || 0)}g</p>
+                  </div>
+                  <div className="bg-white/5 p-2 rounded-lg border border-white/5 text-center">
+                    <p className="text-[8px] text-white/40 uppercase font-bold mb-1">Carbs</p>
+                    <p className="text-xs font-bold text-neon-blue">{Math.round(nutrition.totalNutrients.CHOCDF?.quantity || 0)}g</p>
+                  </div>
+                  <div className="bg-white/5 p-2 rounded-lg border border-white/5 text-center">
+                    <p className="text-[8px] text-white/40 uppercase font-bold mb-1">Fat</p>
+                    <p className="text-xs font-bold text-pink-400">{Math.round(nutrition.totalNutrients.FAT?.quantity || 0)}g</p>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </GlassCard>
 
         <div className="grid grid-cols-2 gap-4">
