@@ -1,0 +1,61 @@
+{
+  "entities": {
+    "users": {
+      "title": "User Profile",
+      "description": "Stores user fitness data and preferences",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "level": { "type": "number" },
+        "xp": { "type": "number" },
+        "streak": { "type": "number" },
+        "totalWorkouts": { "type": "number" },
+        "waterIntake": { "type": "number" },
+        "waterGoal": { "type": "number" }
+      },
+      "required": ["uid", "email"]
+    },
+    "profiles": {
+      "title": "Public Profile",
+      "description": "Publicly visible user data for leaderboard",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "name": { "type": "string" },
+        "xp": { "type": "number" },
+        "level": { "type": "number" },
+        "avatar": { "type": "string" }
+      },
+      "required": ["uid", "name", "xp"]
+    },
+    "workouts": {
+      "title": "Workout Session",
+      "description": "Stores individual workout session data",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "type": { "type": "string" },
+        "duration": { "type": "string" },
+        "xp": { "type": "number" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "type", "timestamp"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "users",
+      "description": "User profile document (Private)"
+    },
+    "/profiles/{userId}": {
+      "schema": "profiles",
+      "description": "Public profile document"
+    },
+    "/workouts/{workoutId}": {
+      "schema": "workouts",
+      "description": "Individual workout session records"
+    }
+  }
+}
